@@ -14,7 +14,9 @@ using System.Threading.Tasks;
 
 namespace Net5Template.WebAPI.Controllers.Services
 {
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]//si se necesitan subir imágenes sin haber iniciado sesión quitar esto
+    //You need a valid token (generated eg. in Front API) token SecretKey should be identical as used by FrontEnd, if not always validation will be wrong
+    //TODO:folders should exists before upload images
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]//If you need to upload images without authorization comment this line
     [ApiVersion(ApiVersions.V1)]
     [Route(ApiRouteTemplate.ROUTE_ENTITY)]
     [ApiController]
@@ -26,19 +28,40 @@ namespace Net5Template.WebAPI.Controllers.Services
                  : base(logger, command, query)
         {
         }
-
         /// <summary>
-        /// Guardar imagen
+        /// Save image anonymously
         /// </summary>
         /// <remarks>
-        /// Listing = 0 -> "images/listing/" -> para guardar imágenes de publicaciones<br/>
-        /// Profile = 1 -> "images/profile/" -> para guardar la imagen principal del perfil de usuario<br/>
-        /// Uploads = 2 -> "images/uploads/" -> para guardar imágenes del blog y seo de páginas estáticas<br/>
-        /// ProfileContent = 3 -> "images/profilecontent/" -> para imágenes del cuerpo de perfil de usuario<br/>
+        /// Profile = 0 -> "images/profile/" -> save image for user profile<br/>
+        /// Uploads = 1 -> "images/uploads/" -> save any other image<br/>
         /// </remarks>
         /// <param name="file"></param>
         /// <param name="imageSaveLocation"></param>
-        /// <returns>Guid de la imagen (uuid)</returns>
+        /// <returns>Image Guid (uuid)</returns>
+        [HttpPost("AnonymousFile")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> PostAnonymousFile(IFormFile file, ImageSaveLocationEnum imageSaveLocation)
+        {
+            var model = new SaveImageStreamCommand();
+            model.FileStream = file.OpenReadStream();
+            model.ImageLocation = imageSaveLocation;
+            //if (imageSaveLocation == ImageSaveLocationEnum.Profile)
+            //    model.CurrentUserId = User.GetUserId();
+
+            var imgGuid = await _commandBus.Send(model);
+            return Ok(imgGuid);
+        }
+        /// <summary>
+        /// Save image
+        /// </summary>
+        /// <remarks>
+        /// Profile = 0 -> "images/profile/" -> save image for user profile<br/>
+        /// Uploads = 1 -> "images/uploads/" -> save any other image<br/>
+        /// </remarks>
+        /// <param name="file"></param>
+        /// <param name="imageSaveLocation"></param>
+        /// <returns>Image Guid (uuid)</returns>
         [HttpPost("File")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Post(IFormFile file, ImageSaveLocationEnum imageSaveLocation)
@@ -53,17 +76,15 @@ namespace Net5Template.WebAPI.Controllers.Services
             return Ok(imgGuid);
         }
         /// <summary>
-        /// Guardar imagen en formato base64
+        /// Save image in base64 format
         /// </summary>
         /// <remarks>
-        /// Listing = 0 -> "images/listing/" -> para guardar imágenes de publicaciones<br/>
-        /// Profile = 1 -> "images/profile/" -> para guardar la imagen principal del perfil de usuario<br/>
-        /// Uploads = 2 -> "images/uploads/" -> para guardar imágenes del blog y seo de páginas estáticas<br/>
-        /// ProfileContent = 3 -> "images/profilecontent/" -> para imágenes del cuerpo de perfil de usuario<br/>
+        /// Profile = 0 -> "images/profile/" -> save image for user profile<br/>
+        /// Uploads = 1 -> "images/uploads/" -> save any other image<br/>
         /// </remarks>
         /// <param name="fileBase64"></param>
         /// <param name="imageSaveLocation"></param>
-        /// <returns>Guid de la imagen (uuid)</returns>
+        /// <returns>Image Guid (uuid)</returns>
         [HttpPost("Base64")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Post([FromBody] string fileBase64, ImageSaveLocationEnum imageSaveLocation)
@@ -80,7 +101,7 @@ namespace Net5Template.WebAPI.Controllers.Services
 
         #region CKEditor FileUpload Helper
         /// <summary>
-        /// Subida de imágenes desde el CKEditor
+        /// Upload images from CKEditor (WYSIWYG Editor)
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>

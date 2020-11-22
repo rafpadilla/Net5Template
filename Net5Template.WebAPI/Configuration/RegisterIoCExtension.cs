@@ -1,6 +1,4 @@
-﻿using Net5Template.Core.Hub;
-using Net5Template.WebAPI.Services;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +16,7 @@ namespace Net5Template.WebAPI.Configuration
             return services
                // .AddTransient<IIdentityService, IdentityService>()
                //user notification
-               .AddTransient<IHubNotificationService, HubNotificationService>();
+               ;
         }
     }
 }

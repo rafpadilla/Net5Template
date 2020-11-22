@@ -1,12 +1,9 @@
 using Net5Template.Application.Configuration;
 using Net5Template.Infrastructure.Configuration;
-using Net5Template.Infrastructure.Email;
 using Net5Template.Infrastructure.Health;
 using Net5Template.Infrastructure.Logging;
-using Net5Template.Infrastructure.Persistence.EF;
 using Net5Template.WebAPI.Configuration;
 using Net5Template.WebAPI.Filters;
-using Net5Template.WebAPI.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -26,6 +23,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace Net5Template.WebAPI
 {
@@ -59,21 +57,6 @@ namespace Net5Template.WebAPI
 
             services.AddMyHealthChecks(Configuration);
 
-            switch (Configuration["AppSettings:UseDatabase"])
-            {
-                //case "mongodb":
-                //    services.AddMongoDbContext<Net5TemplateMongoContext>(options =>
-                //    {
-                //        options.ConnectionString = Configuration.GetConnectionString("mongodb");
-                //        options.DatabaseName = Configuration["AppSettings:MongoDatabaseName"];
-                //    });
-                //    break;
-                case "sqlserver":
-                default:
-                    services.AddSqlServerDbContext(Configuration);
-                    break;
-            }
-
             //MediatR
             services.AddCQRS(Configuration);
 
@@ -98,36 +81,9 @@ namespace Net5Template.WebAPI
                 {
                     options.SaveToken = true;
                     options.TokenValidationParameters = tokenValidationParams;
-                    options.Events = new JwtBearerEvents()
-                    {
-                        OnMessageReceived = context =>
-                        {
-                            var accessToken = context.Request.Query["access_token"];
-
-                            // If the request is for our hub...
-                            var path = context.HttpContext.Request.Path;
-                            if (!string.IsNullOrEmpty(accessToken) &&
-                                (path.StartsWithSegments("/Net5TemplateHub")))
-                            {
-                                // Read the token out of the query string
-                                context.Token = accessToken;
-                            }
-                            return Task.CompletedTask;
-                        },
-                        OnAuthenticationFailed = context =>
-                        {
-                            var te = context.Exception;
-                            return Task.CompletedTask;
-                        }
-                    };
                 });
 
             services.AddApiVersioning();
-
-            //SPA
-            //services.AddSpaStaticFiles(options => { options.RootPath = "wwwroot"; });
-
-            services.AddEventBusMQ(Configuration, typeof(Startup).Assembly);
 
             services.AddControllers(options =>
             {
@@ -140,10 +96,6 @@ namespace Net5Template.WebAPI
 
             if (Configuration.GetValue<bool>("AppSettings:EnableSwagger"))
                 services.AddSwaggerDocumentation(typeof(Startup));
-            //services.AddSwaggerGen(c =>
-            //{
-            //    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Net5Template.API", Version = "v1" });
-            //});
 
             //register dependencies
             services.RegisterIoCWebAPIDependencies()
@@ -153,11 +105,7 @@ namespace Net5Template.WebAPI
             //register domain mapper
             services.RegisterMapperDomainDTODependencies();
 
-            services.Configure<EmailSettings>(Configuration.GetSection("EmailSettings"));
-
-            services.AddMemoryCache();
-
-            services.AddSignalR();
+            services.AddTransient<IHttpContextAccessor, HttpContextAccessor>();
 
             services.Configure<GzipCompressionProviderOptions>(options =>
             {
@@ -198,14 +146,6 @@ namespace Net5Template.WebAPI
 
             app.UseResponseCompression();
 
-            //SPA
-            //FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
-            //provider.Mappings[".webmanifest"] = "application/manifest+json";
-            //app.UseStaticFiles(new StaticFileOptions()
-            //{
-            //    ContentTypeProvider = provider
-            //});
-
             app.UseRouting();
 
             app.UseHealthChecks();
@@ -220,18 +160,7 @@ namespace Net5Template.WebAPI
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
                 endpoints.MapRazorPages();
-                endpoints.MapHub<Net5TemplateHub>("/Net5TemplateHub");
             });
-
-            //SPA
-            //app.UseSpaStaticFiles();
-            //app.UseSpa(builder =>
-            //{
-            //    if (Env.IsDevelopment())
-            //    {
-            //        builder.UseProxyToSpaDevelopmentServer("http://localhost:3000");
-            //    }
-            //});
         }
     }
 }

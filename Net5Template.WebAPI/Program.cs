@@ -1,6 +1,4 @@
-using Net5Template.WebAPI.HostedServices;
 using Net5Template.Infrastructure.Logging;
-using Net5Template.Infrastructure.Persistence.EF;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,9 +35,7 @@ namespace Net5Template.WebAPI
 
             logger.LogInformation("Starting web host");
 
-            host.MigrateDatabase(_env, Configuration, logger, args)//migrate on start app on development
-                .AddDevelopmentUsers(_env, Configuration, logger, args)//en desarrollog (debug) verificar si existen los ususarios y añadirlos en tal caso
-                .Run();
+            host.Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -48,27 +44,6 @@ namespace Net5Template.WebAPI
                 {
                     webBuilder.UseStartup<Startup>();
                 })
-                .UseSerilog()
-                .ConfigureServices(services =>
-                {
-                    //https://docs.microsoft.com/es-es/aspnet/core/fundamentals/host/hosted-services?view=aspnetcore-3.1&tabs=visual-studio
-
-                    //execute a task every x time (configurable)
-                    #region snippet1
-                    services.AddHostedService<TimedHostedService>();
-                    #endregion
-
-                    //use a scoped service in a background service (can use DI), stops where cancellation token calls
-                    //#region snippet2
-                    //services.AddHostedService<ConsumeScopedServiceHostedService>();
-                    //services.AddScoped<IScopedProcessingService, ScopedProcessingService>();
-                    //#endregion
-
-                    //Add tasks to queued background, throug DI (IBackgroundTaskQueue)
-                    #region snippet3
-                    services.AddHostedService<QueuedHostedService>();
-                    services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
-                    #endregion
-                });
+                .UseSerilog();
     }
 }

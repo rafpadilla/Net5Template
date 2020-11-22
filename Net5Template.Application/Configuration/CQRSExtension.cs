@@ -1,5 +1,4 @@
 ﻿using Net5Template.Core.Bus;
-using Net5Template.Core.Domain;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

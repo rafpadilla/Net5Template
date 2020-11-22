@@ -1,5 +1,4 @@
-﻿using Net5Template.Application.HostedServices;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +13,6 @@ namespace Net5Template.Application.Configuration
         {
             return services
                //jobs
-               .AddTransient<ISystemJobHostedService, SystemJobHostedService>()
-               //.AddTransient<IMailingJobAppService, MailingJobAppService>()
-               //.AddTransient<IGeoIPJobAppService, GeoIPJobAppService>()
-               //.AddTransient<INotificationJobAppService, NotificationJobAppService>()
                ;
         }
     }

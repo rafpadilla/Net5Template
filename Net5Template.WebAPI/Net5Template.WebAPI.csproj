@@ -27,4 +27,9 @@
     <ProjectReference Include="..\Net5Template.Infrastructure\Net5Template.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\images\uploads\" />
+    <Folder Include="wwwroot\images\profile\" />
+  </ItemGroup>
+
 </Project>
