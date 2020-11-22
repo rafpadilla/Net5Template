@@ -26,16 +26,8 @@ namespace Net5Template.Infrastructure.Persistence.EF
                     using var scope = host.Services.CreateScope();
                     try
                     {
-                        if (configuration.GetValue<bool>("AppSettings:UseEFIdentity"))
-                        {
-                            using var appContext = scope.ServiceProvider.GetRequiredService<Net5TemplateIdentityContext>();
-                            appContext.Database.Migrate();
-                        }
-                        else
-                        {
-                            using var appContext = scope.ServiceProvider.GetRequiredService<Net5TemplateContext>();
-                            appContext.Database.Migrate();
-                        }
+                        using var appContext = scope.ServiceProvider.GetRequiredService<Net5TemplateContext>();
+                        appContext.Database.Migrate();
                     }
                     catch (Exception ex)
                     {

@@ -15,24 +15,11 @@ namespace Net5Template.Infrastructure.Persistence.EF
     {
         public static IServiceCollection AddSqlServerDbContext(this IServiceCollection services, IConfiguration configuration)
         {
-            if (configuration.GetValue<bool>("AppSettings:UseEFIdentity"))
+            services.AddDbContext<Net5TemplateContext>(options =>
             {
-                services.AddDbContext<Net5TemplateIdentityContext>(options =>
-                {
-                    options.UseSqlServer(configuration.GetConnectionString("sqlserver"),
-                        options => options.MigrationsAssembly(typeof(Net5TemplateIdentityContext).Assembly.FullName));
-                }).AddIdentity<AspNetUser, IdentityRole<Guid>>()
-                 .AddEntityFrameworkStores<Net5TemplateIdentityContext>()
-                 .AddDefaultTokenProviders();
-            }
-            else
-            {
-                services.AddDbContext<Net5TemplateContext>(options =>
-                {
-                    options.UseSqlServer(configuration.GetConnectionString("sqlserver"),
-                        options => options.MigrationsAssembly(typeof(Net5TemplateContext).Assembly.FullName));
-                });
-            }
+                options.UseSqlServer(configuration.GetConnectionString("sqlserver"),
+                    options => options.MigrationsAssembly(typeof(Net5TemplateContext).Assembly.FullName));
+            });
             return services;
         }
     }

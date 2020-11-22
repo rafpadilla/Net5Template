@@ -1,12 +1,8 @@
 ﻿using Net5Template.Core.Bus;
 using Net5Template.Core.Repository;
-using Net5Template.Core.Services;
 using Net5Template.Infrastructure.Bus;
 using Net5Template.Infrastructure.Caching;
 using Net5Template.Infrastructure.DataContext;
-using Net5Template.Infrastructure.Email;
-using Net5Template.Infrastructure.Formatters;
-using Net5Template.Infrastructure.ImageProcessing;
 using Net5Template.Infrastructure.Persistence.EF;
 using Net5Template.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
@@ -37,20 +33,11 @@ namespace Net5Template.Infrastructure.Configuration
                 case "sqlserver":
                 default:
                     services
-                        .AddTransient<IRefreshTokenRepository, RefreshTokenRepository>()
-                        .AddTransient<IAspNetUserRepository, AspNetUserRepository>()
                         .AddTransient<ILogRepository, LogRepository>()
                         //cached repository
                         //.AddTransient<ICountryRepository, Repositories.EfCore.CountryRepository>();
                         ;
-                    if (configuration.GetValue<bool>("AppSettings:UseEFIdentity"))
-                    {
-                        services.AddScoped<IDataContext, Net5TemplateIdentityContext>();
-                    }
-                    else
-                    {
-                        services.AddScoped<IDataContext, Net5TemplateContext>();
-                    }
+                    services.AddScoped<IDataContext, Net5TemplateContext>();
                     break;
             }
 
@@ -72,11 +59,6 @@ namespace Net5Template.Infrastructure.Configuration
 
             return services
                 //infrastructure services
-                .AddScoped<IEmailSender, EmailSender>()
-                .AddScoped<IEmailService, EmailService>()
-                .AddSingleton<ICSVService, CSVService>()
-                //.AddSingleton<IGeoAPIAppService, GeoAPIService>()
-                .AddSingleton<IImageService, ImageService>()
                 //cache service
                 .AddTransient<IDataCacheService, DataCacheService>()
                 ;

@@ -1,7 +1,5 @@
 ﻿using Net5Template.Application.Services.Logs.Queries;
 using Net5Template.Core.Bus;
-using Net5Template.Core.Bus.RabbitMQ;
-using Net5Template.Core.MessageContracts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -12,6 +10,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using Net5Template.Application.Services.Logs.Commands;
 
 namespace Net5Template.WebAPI.Controllers
 {
@@ -23,12 +22,9 @@ namespace Net5Template.WebAPI.Controllers
     [ApiController]
     public class LogsController : Net5TemplateControllerBase
     {
-        private readonly IMessagePublish _messagePublish;
-
-        public LogsController(ILogger<LogsController> logger, ICommandBus command, IQueryBus query, IMessagePublish messagePublish)
+        public LogsController(ILogger<LogsController> logger, ICommandBus command, IQueryBus query)
             : base(logger, command, query)
         {
-            _messagePublish = messagePublish;
         }
 
         [HttpGet]
@@ -43,11 +39,11 @@ namespace Net5Template.WebAPI.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(IEnumerable<GetLogsDTO>), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> PostMessage([Required] string recipeName)
+        public async Task<IActionResult> PostMessage([Required] string message)
         {
             _logger.LogWarning("Test log");
-            await _messagePublish.Publish(new RecipeWasChangedV1() { RecipeName = recipeName });
-            return Ok();
+            var id = await _commandBus.Send(new AddLogCommand(message));
+            return Created(string.Empty, id);
         }
 
     }

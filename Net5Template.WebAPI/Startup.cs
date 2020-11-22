@@ -1,12 +1,10 @@
 using Net5Template.Application.Configuration;
 using Net5Template.Infrastructure.Configuration;
-using Net5Template.Infrastructure.Email;
 using Net5Template.Infrastructure.Health;
 using Net5Template.Infrastructure.Logging;
 using Net5Template.Infrastructure.Persistence.EF;
 using Net5Template.WebAPI.Configuration;
 using Net5Template.WebAPI.Filters;
-using Net5Template.WebAPI.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -98,36 +96,12 @@ namespace Net5Template.WebAPI
                 {
                     options.SaveToken = true;
                     options.TokenValidationParameters = tokenValidationParams;
-                    options.Events = new JwtBearerEvents()
-                    {
-                        OnMessageReceived = context =>
-                        {
-                            var accessToken = context.Request.Query["access_token"];
-
-                            // If the request is for our hub...
-                            var path = context.HttpContext.Request.Path;
-                            if (!string.IsNullOrEmpty(accessToken) &&
-                                (path.StartsWithSegments("/Net5TemplateHub")))
-                            {
-                                // Read the token out of the query string
-                                context.Token = accessToken;
-                            }
-                            return Task.CompletedTask;
-                        },
-                        OnAuthenticationFailed = context =>
-                        {
-                            var te = context.Exception;
-                            return Task.CompletedTask;
-                        }
-                    };
                 });
 
             services.AddApiVersioning();
 
             //SPA
             //services.AddSpaStaticFiles(options => { options.RootPath = "wwwroot"; });
-
-            services.AddEventBusMQ(Configuration, typeof(Startup).Assembly);
 
             services.AddControllers(options =>
             {
@@ -140,10 +114,6 @@ namespace Net5Template.WebAPI
 
             if (Configuration.GetValue<bool>("AppSettings:EnableSwagger"))
                 services.AddSwaggerDocumentation(typeof(Startup));
-            //services.AddSwaggerGen(c =>
-            //{
-            //    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Net5Template.API", Version = "v1" });
-            //});
 
             //register dependencies
             services.RegisterIoCWebAPIDependencies()
@@ -153,11 +123,7 @@ namespace Net5Template.WebAPI
             //register domain mapper
             services.RegisterMapperDomainDTODependencies();
 
-            services.Configure<EmailSettings>(Configuration.GetSection("EmailSettings"));
-
             services.AddMemoryCache();
-
-            services.AddSignalR();
 
             services.Configure<GzipCompressionProviderOptions>(options =>
             {
@@ -220,7 +186,6 @@ namespace Net5Template.WebAPI
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
                 endpoints.MapRazorPages();
-                endpoints.MapHub<Net5TemplateHub>("/Net5TemplateHub");
             });
 
             //SPA
