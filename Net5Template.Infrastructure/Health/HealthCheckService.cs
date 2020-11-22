@@ -19,8 +19,7 @@ namespace Net5Template.Infrastructure.Health
         public static IHealthChecksBuilder AddMyHealthChecks(this IServiceCollection services, IConfiguration configuration)
         {
 
-            return services.AddHealthChecks()
-                .AddSqlServer(configuration.GetConnectionString("sqlserver"));
+            return services.AddHealthChecks();
         }
 
         public static IApplicationBuilder UseHealthChecks(this IApplicationBuilder application)
