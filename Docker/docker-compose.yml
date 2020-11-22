@@ -1,0 +1,71 @@
+version: '3'
+
+services:
+  portainer:
+    image: portainer/portainer-ce:${PORTAINER_VERSION}
+    container_name: ${ENV_PREFIX}portainer
+    restart: always
+    volumes:
+    - portainer_ce_data:/data
+    - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - ${PORTAINER_API_PORT}:9000
+      - ${PORTAINER_SSH_PORT}:8000
+    networks:
+      - default
+
+  rabbitmq:
+    image: rabbitmq:${RABBITMQ_VERSION}-management-alpine
+    container_name: ${ENV_PREFIX}rabbitmq
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - ${RABBITMQ_AMQP_PORT}:5672
+      - ${RABBITMQ_HTTP_PORT}:15672
+    networks:
+      - default
+  db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: ${ENV_PREFIX}db
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - ${EXTERNAL_DB_PORT}:1433
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: ${DB_SA_PASSWORD}
+      MSSQL_PID: Express
+    volumes:
+      - sql_server_data:/var/opt/mssql
+    networks:
+      - default
+
+  net5template:
+    build: ../.
+    image: net5template:dev-latest
+    container_name: ${ENV_PREFIX}net5template
+    env_file:
+      - .env
+    ports:
+      - ${HTTP_PORT}:80
+      - ${HTTPS_PORT}:443
+    working_dir: /app
+    restart: unless-stopped
+    networks:
+      - default
+    depends_on:
+      - rabbitmq
+      - db
+      - portainer
+
+volumes:
+  sql_server_data:
+    name: sql_server_data
+  portainer_ce_data:
+
+
+networks:
+  default:
+    name: ${ENV_PREFIX}dockernetwork

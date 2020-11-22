@@ -1,0 +1,1 @@
+Net 5 solution as base template for solutions/projects/microservices.

@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Rafael Padilla",
+  "classifications": [ "Net5Template", "boilerplate", "template", "net5" ],
+  "identity": "Net5Template",
+  "name": "Net 5 Template Sample",
+  "shortName": "Net5Template",
+  "tags": {
+    "language": "C#",
+    "type": "solution"
+  },
+  "version": "1.0.0.0",
+  "preferNameDirectory": true,
+  "symbols": {
+    "projectname": {
+      "type": "parameter",
+      "dataType": "string",
+      "fileRename": "Net5Template",
+      "replaces": "Net5Template"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "exclude": [ "packages/**", ".vs/**", "**/.git/**", "**/node_modules/**", "**/[Oo]bj/**", "**/[Bb]in/**", "**/client[Aa]pp/[Dd]ist/**", "**.WebAPI/[Ll]ogs/**" ]
+        }
+      ]
+    }
+  ]
+}
